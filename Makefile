@@ -20,11 +20,16 @@ LINK_LIB=-lpthread -ljsoncpp -lncurses
 
 SER_BIN=udp_serverd
 CLI_BIN=udp_client
-
-all:$(SER_BIN) $(CLI_BIN)
 .PHONY:all
-SRC=$(shell ls -R | grep -E '^*.cpp' | grep -v 'libjsoncpp.a')
-OBJ=$(SRC:.cpp=.o)
+all:$(SER_BIN) $(CLI_BIN)
+#SRC=$(shell ls -R | grep -E '^*.cpp' | grep -v 'libjsoncpp.a')
+#OBJ=$(SRC:.cpp=.o)
+
+SRC:=$(shell ls -R)
+DIR=$(notdir $(SRC))
+PPP=$(filter %.cpp,$(DIR))
+OBJ=$(PPP:.cpp=.o)
+
 SER_OBJ=$(shell echo $(OBJ) | sed 's/udp_client.o //'|sed 's/client_main.o//'| sed 's/window.o//')
 CLI_OBJ=$(shell echo $(OBJ) | sed 's/data_pool.o//'|sed 's/udp_server.o//'| sed 's/server_main.o//')
 	
@@ -34,44 +39,44 @@ $(SER_BIN):$(SER_OBJ)
 $(CLI_BIN):$(CLI_OBJ)
 	@echo "Linking [ $^ ] to [ $@ ] ... done"
 	@$(CC) -g -o $@ $^ $(LIB_PATH) $(LDFLAGS) $(LINK_LIB)
+
+define run-yacc
+@echo "Compiling [ $< ] to [ $@ ] ... done"
+@$(CC) -c $< $(INCLUDE) $(FLAGS)
+endef
+
 %.o:$(CLIENT)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 %.o:$(COMM)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 %.o:$(DATA_POOL)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 %.o:$(LOG)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 %.o:$(SERVER)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 %.o:$(WINDOW)/%.cpp
-	@echo "Compiling [ $< ] to [ $@ ] ... done"
-	@$(CC) -c $< $(INCLUDE) $(FLAGS)
+	$(run-yacc)
 
 .PHONY:clean
 clean:
-	echo "clean project ... done"
-	rm -rf *.o ${SER_BIN} ${CLI_BIN} output
+	@-rm -rf *.o ${SER_BIN} ${CLI_BIN} output
+	@echo "clean project ... done"
 output:all
 .PHONY:output
 output:
-	mkdir -p output/server/log
-	mkdir -p output/server/bin
-	mkdir -p output/client/log
-	mkdir -p output/client/bin
-	cp -rf udp_serverd output/server/bin
-	cp -rf plugin/server_ctrl.sh output/server
-	cp -rf udp_client  output/client/bin
-	cp -rf conf        output/server
-	cp -rf conf        output/client
-	cp -rf plugin/run_client.sh output/client
-	rm -f  output/client/conf/server.conf
-	rm -f  output/server/conf/client.conf
+	-mkdir -p output/server/log
+	-mkdir -p output/server/bin
+	-mkdir -p output/client/log
+	-mkdir -p output/client/bin
+	-cp -rf udp_serverd output/server/bin
+	-cp -rf plugin/server_ctrl.sh output/server
+	-cp -rf udp_client  output/client/bin
+	-cp -rf conf        output/server
+	-cp -rf conf        output/client
+	-cp -rf plugin/run_client.sh output/client
+	-rm -f  output/client/conf/server.conf
+	-rm -f  output/server/conf/client.conf
 
 
 
